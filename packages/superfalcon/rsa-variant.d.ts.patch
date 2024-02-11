@@ -1,4 +1,0 @@
-1c1
-< declare module 'superfalcon' {
----
-> declare module 'superfalcon/dist/rsa-variant.js' {

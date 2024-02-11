@@ -1,1 +1,0 @@
-var hqc = (function () {

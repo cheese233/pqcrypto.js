@@ -1,41 +1,100 @@
 all:
-	for d in $$(ls packages/*/Makefile | sed 's|/Makefile||g') ; do \
-		cd $${d}; \
-		make || exit 1; \
-		cd -; \
-	done
+	make clean
+
+	bash -c ' \
+		args="$$(echo " \
+			--memory-init-file 0 \
+			-s SINGLE_FILE=1 \
+			-s TOTAL_MEMORY=16777216 -s TOTAL_STACK=8388608 \
+			-s ASSERTIONS=0 \
+			-s AGGRESSIVE_VARIABLE_ELIMINATION=1 \
+			-s ALIASING_FUNCTION_POINTERS=1 \
+			-s DISABLE_EXCEPTION_CATCHING=1 \
+			-s NO_FILESYSTEM=1 \
+			-s ERROR_ON_UNDEFINED_SYMBOLS=0 \
+			-Ilibsodium/src/libsodium/include/sodium \
+			-Ipqclean/common \
+			-Ipqclean/crypto_sign/sphincs-shake256-256s-robust/clean \
+			libsodium/src/libsodium/randombytes/randombytes.c \
+			$$( \
+				find \
+					pqclean/common \
+					pqclean/crypto_sign/sphincs-shake256-256s-robust/clean \
+				-name '"'"'*.c'"'"' -type f \
+				-not \( \
+					-path '*/keccak4x/*' -or \
+					-name randombytes.c \
+				\) \
+			) \
+			main.c \
+			-s EXPORTED_RUNTIME_METHODS=\"[ \
+				'"'"'writeArrayToMemory'"'"' \
+			]\" \
+			-s EXPORTED_FUNCTIONS=\"[ \
+				'"'"'_free'"'"', \
+				'"'"'_malloc'"'"', \
+				'"'"'_sphincsjs_init'"'"', \
+				'"'"'_sphincsjs_keypair'"'"', \
+				'"'"'_sphincsjs_keypair_with_seed'"'"', \
+				'"'"'_sphincsjs_sign'"'"', \
+				'"'"'_sphincsjs_verify'"'"', \
+				'"'"'_sphincsjs_public_key_bytes'"'"', \
+				'"'"'_sphincsjs_secret_key_bytes'"'"', \
+				'"'"'_sphincsjs_signature_bytes'"'"' \
+			]\" \
+		" | perl -pe "s/\s+/ /g" | perl -pe "s/\[ /\[/g" | perl -pe "s/ \]/\]/g")"; \
+		\
+		bash -c "emcc -Oz -s WASM=0 $$args -o dist/index.asm.js"; \
+		bash -c "emcc -O3 -s WASM=1 $$args -o dist/index.wasm.js"; \
+	'
+
+	npx babel --no-babelrc --presets @babel/preset-env dist/index.asm.js -o dist/index.asm.js
+	npx babel --no-babelrc --presets @babel/preset-env dist/index.wasm.js -o dist/index.wasm.js
+
+	cp pre.js dist/index.tmp.js
+	echo " \
+		var Module = {}; \
+		Module.ready = new Promise(function (resolve, reject) { \
+			var Module = {}; \
+			Module.onAbort = reject; \
+			Module.onRuntimeInitialized = function () { \
+				try { \
+					Module._sphincsjs_public_key_bytes(); \
+					resolve(Module); \
+				} \
+				catch (err) { \
+					reject(err); \
+				} \
+			}; \
+	" >> dist/index.tmp.js
+	cat dist/index.wasm.js >> dist/index.tmp.js
+	echo " \
+		}).catch(function () { \
+			var Module = {}; \
+	" >> dist/index.tmp.js
+	cat dist/index.asm.js >> dist/index.tmp.js
+	echo " \
+			return new Promise(function (resolve, reject) { \
+				Module.onAbort = reject; \
+				Module.onRuntimeInitialized = function () { resolve(Module); }; \
+			}); \
+		}).then(function (m) { \
+			Object.keys(m).forEach(function (k) { Module[k] = m[k]; }); \
+		}); \
+	" >> dist/index.tmp.js
+	cat post.js >> dist/index.tmp.js
+
+	npx terser dist/index.tmp.js -cmo dist/index.js
+
+	sed -i 's|use asm||g' dist/index.js
+	sed -i 's|require(|eval("require")(|g' dist/index.js
+
+	rm -rf dist/index.*.js
+	chmod -R 777 dist
 
 clean:
-	for d in $$(ls packages/*/Makefile | sed 's|/Makefile||g') ; do \
-		cd $${d}; \
-		make clean || exit 1; \
-		cd -; \
-	done
-
-publish:
-	for d in $$(ls packages/*/package.json | sed 's|/package.json||g') ; do \
-		cd $${d}; \
-		npm publish; \
-		cd -; \
-	done
+	rm -rf dist 2> /dev/null
+	mkdir dist
 
 test:
-	for d in $$(ls packages/*/Makefile | sed 's|/Makefile||g') ; do \
-		cd $${d}; \
-		make test || exit 1; \
-		cd -; \
-	done
-
-updatelibs:
-	grep 'path =' .gitmodules | \
-		awk '{print $$3}' | \
-		grep -vP '^lib/legacy/' | \
-		grep -vP '^lib/pqclean$$' | \
-		xargs git submodule update --remote
-
-	for d in $$(ls packages/*/package.json | sed 's|/package.json||g') ; do \
-		cd $${d}; \
-		rm -rf node_modules package-lock.json; \
-		npm install || exit 1; \
-		cd -; \
-	done
+	npm run test

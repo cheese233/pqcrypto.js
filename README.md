@@ -1,55 +1,67 @@
-# pqcrypto.js
+# sphincs
 
-This is a suite of quantum-resistant cryptographic libraries for JavaScript/WebAssembly,
-along with a few related utilities. Most of the algorithms included are products of the
-[NIST Post-Quantum Cryptography (PQC)](https://csrc.nist.gov/projects/post-quantum-cryptography)
-competition.
+## Overview
 
-The following NPM packages are included in this repository:
+The [SPHINCS+](https://sphincs.org) post-quantum cryptographic signing scheme
+compiled to WebAssembly using [Emscripten](https://github.com/kripken/emscripten).
+A simple JavaScript wrapper is provided to make SPHINCS+ easy to use in Web applications.
 
-* [dilithium-crystals](https://github.com/cyph/pqcrypto.js/tree/master/packages/dilithium-crystals)
+The default parameter set is SPHINCS+-SHAKE-256s-robust (roughly 256-bit strength).
 
-* [falcon-crypto](https://github.com/cyph/pqcrypto.js/tree/master/packages/falcon-crypto)
+N.B. Unless interoperability with other SPHINCS+ implementations is a hard requirement,
+it is recommended to use
+[supersphincs](https://github.com/cyph/pqcrypto.js/tree/master/packages/supersphincs) instead.
 
-* [fast-sha512](https://github.com/cyph/pqcrypto.js/tree/master/packages/fast-sha512)
+## Example Usage
 
-* [hqc](https://github.com/cyph/pqcrypto.js/tree/master/packages/hqc)
+	import {sphincs} from 'sphincs';
 
-* [kyber-crystals](https://github.com/cyph/pqcrypto.js/tree/master/packages/kyber-crystals)
+	const keyPair /*: {privateKey: Uint8Array; publicKey: Uint8Array} */ =
+		await sphincs.keyPair()
+	;
 
-* [mceliece](https://github.com/cyph/pqcrypto.js/tree/master/packages/mceliece)
+	const message /*: Uint8Array */ =
+		new Uint8Array([104, 101, 108, 108, 111, 0]) // "hello"
+	;
 
-* [mceliece-legacy](https://github.com/cyph/pqcrypto.js/tree/master/packages/mceliece-legacy)
+	/* Combined signatures */
 
-* [ntru](https://github.com/cyph/pqcrypto.js/tree/master/packages/ntru)
+	const signed /*: Uint8Array */ =
+		await sphincs.sign(message, keyPair.privateKey)
+	;
 
-* [ntru-legacy](https://github.com/cyph/pqcrypto.js/tree/master/packages/ntru-legacy)
+	const verified /*: Uint8Array */ =
+		await sphincs.open(signed, keyPair.publicKey) // same as message
+	;
 
-* [pem-jwk-norecompute](https://github.com/cyph/pqcrypto.js/tree/master/packages/pem-jwk-norecompute)
+	/* Detached signatures */
 
-* [rlwe](https://github.com/cyph/pqcrypto.js/tree/master/packages/rlwe)
+	const signature /*: Uint8Array */ =
+		await sphincs.signDetached(message, keyPair.privateKey)
+	;
 
-* [rsasign](https://github.com/cyph/pqcrypto.js/tree/master/packages/rsasign)
+	const isValid /*: boolean */ =
+		await sphincs.verifyDetached(signature, message, keyPair.publicKey) // true
+	;
 
-* [sidh](https://github.com/cyph/pqcrypto.js/tree/master/packages/sidh)
+	console.log(keyPair);
+	console.log(message);
+	console.log(signed);
+	console.log(verified);
+	console.log(signature);
+	console.log(isValid);
 
-* [sidh-legacy](https://github.com/cyph/pqcrypto.js/tree/master/packages/sidh-legacy)
+## Changelog
 
-* [sodiumutil](https://github.com/cyph/pqcrypto.js/tree/master/packages/sodiumutil)
+Breaking changes in major versions:
 
-* [sphincs](https://github.com/cyph/pqcrypto.js/tree/master/packages/sphincs)
+3.0.0:
 
-* [sphincs-legacy](https://github.com/cyph/pqcrypto.js/tree/master/packages/sphincs-legacy)
+* Upgraded from SPHINCS to SPHINCS+. For backwards compatibility with previous versions
+of this package, use
+[sphincs-legacy](https://github.com/cyph/pqcrypto.js/tree/master/packages/sphincs-legacy).
 
-* [superdilithium](https://github.com/cyph/pqcrypto.js/tree/master/packages/superdilithium)
+2.0.0:
 
-* [superfalcon](https://github.com/cyph/pqcrypto.js/tree/master/packages/superfalcon)
-
-* [supersphincs](https://github.com/cyph/pqcrypto.js/tree/master/packages/supersphincs)
-
-* [supersphincs-legacy](https://github.com/cyph/pqcrypto.js/tree/master/packages/supersphincs-legacy)
-
-* [xkcd-passphrase](https://github.com/cyph/pqcrypto.js/tree/master/packages/xkcd-passphrase)
-
-For more information, see the individual package readmes. They should all be considered
-experimental at this time.
+* As part of upgrading from asm.js to WebAssembly (with asm.js included as a fallback),
+the API is fully asynchronous.
