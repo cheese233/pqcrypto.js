@@ -1,0 +1,25 @@
+name: "branch deploy demo"
+
+# The workflow to execute on is comments that are newly created
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Permissions needed for reacting and adding comments for IssueOps commands
+permissions:
+  pull-requests: write
+  deployments: write
+  contents: write
+  checks: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout your projects repository based on the ref provided by the branch-deploy step
+      - uses: actions/checkout@v4
+      - id: git_commit
+        uses: zwaldowski/git-commit-action@v1
+        with:
+          working_directory: "./packages"
