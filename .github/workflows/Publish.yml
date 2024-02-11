@@ -3,7 +3,8 @@ name: "publish packages"
 # The workflow to execute on is comments that are newly created
 on:
   push:
-    branches: [main]
+    branches: 
+      - main
   workflow_dispatch:
 
 # Permissions needed for reacting and adding comments for IssueOps commands
