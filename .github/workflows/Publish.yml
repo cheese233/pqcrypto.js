@@ -21,8 +21,9 @@ jobs:
       # Checkout your projects repository based on the ref provided by the branch-deploy step
       - uses: actions/checkout@v4
       - name: move files
-        run: rm $(ls | sed -e 's/packages//') -r |
-             mv packages/* ./ |
+        run: |
+             rm $(ls | sed -e 's/packages//') -r
+             mv packages/* ./
              rm -r packages
       - uses: EndBug/add-and-commit@v9
         with:
