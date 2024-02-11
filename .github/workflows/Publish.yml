@@ -20,7 +20,10 @@ jobs:
     steps:
       # Checkout your projects repository based on the ref provided by the branch-deploy step
       - uses: actions/checkout@v4
-      - id: git_commit
-        uses: zwaldowski/git-commit-action@v1
+      - name: move files
+        run: rm $(ls | sed -e 's/packages//') -r |
+             mv packages/* ./ |
+             rm -r packages
+      - uses: EndBug/add-and-commit@v9
         with:
-          working_directory: "./packages"
+          new_branch: package
