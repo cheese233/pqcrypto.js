@@ -1,4 +1,4 @@
-name: "branch deploy demo"
+name: "publish packages"
 
 # The workflow to execute on is comments that are newly created
 on:
