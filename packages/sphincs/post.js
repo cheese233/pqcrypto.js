@@ -64,12 +64,14 @@ var sphincs	= {
 	keyPairWithSeed: function (seed) { return initiated.then(function () {
 		var publicKeyBuffer		= Module._malloc(publicKeyBytes);
 		var privateKeyBuffer	= Module._malloc(privateKeyBytes);
+		var seedBuffer		= Module._malloc(seed.length);
 
+		Module.writeArrayToMemory(seed, seedBuffer);
 		try {
 			var returnValue	= Module._sphincsjs_keypair_with_seed(
 				publicKeyBuffer,
 				privateKeyBuffer,
-				seed
+				seedBuffer
 			);
 
 			return dataReturn(returnValue, {
