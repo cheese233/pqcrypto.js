@@ -1,4 +1,4 @@
-name: "publish packages"
+name: "publish packages sphincs"
 
 # The workflow to execute on is comments that are newly created
 on:
@@ -22,8 +22,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: move files
         run: |
-             rm $(ls | sed -e 's/packages//') -r
-             mv packages/* ./
+             rm $(ls --almost-all | sed -e 's/packages//') -r
+             mv packages/sphincs/* ./
              rm -r packages
       - uses: EndBug/add-and-commit@v9
         with:
