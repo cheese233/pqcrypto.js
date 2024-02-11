@@ -61,7 +61,27 @@ var sphincs	= {
 			dataFree(privateKeyBuffer);
 		}
 	}); },
+	keyPairWithSeed: function (seed) { return initiated.then(function () {
+		var publicKeyBuffer		= Module._malloc(publicKeyBytes);
+		var privateKeyBuffer	= Module._malloc(privateKeyBytes);
 
+		try {
+			var returnValue	= Module._sphincsjs_keypair_with_seed(
+				publicKeyBuffer,
+				privateKeyBuffer,
+				seed
+			);
+
+			return dataReturn(returnValue, {
+				publicKey: dataResult(publicKeyBuffer, publicKeyBytes),
+				privateKey: dataResult(privateKeyBuffer, privateKeyBytes)
+			});
+		}
+		finally {
+			dataFree(publicKeyBuffer);
+			dataFree(privateKeyBuffer);
+		}
+	}); },
 	sign: function (message, privateKey) {
 		return sphincs.signDetached(message, privateKey).then(function (signature) {
 			var signed	= new Uint8Array(bytes + message.length);

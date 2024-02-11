@@ -11,6 +11,7 @@ declare module 'sphincs' {
 
 		/** Generates key pair. */
 		keyPair () : Promise<{privateKey: Uint8Array; publicKey: Uint8Array}>;
+		keyPairWithSeed (seed: Uint8Array) : Promise<{privateKey: Uint8Array; publicKey: Uint8Array}>;
 
 		/** Verifies signed message against publicKey and returns it. */
 		open (signed: Uint8Array, publicKey: Uint8Array) : Promise<Uint8Array>;

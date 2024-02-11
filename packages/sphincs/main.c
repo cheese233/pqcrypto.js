@@ -28,6 +28,18 @@ long sphincsjs_keypair (
 	);
 }
 
+long sphincsjs_keypair_with_seed (
+	uint8_t* public_key,
+	uint8_t* private_key,
+	uint8_t* seed
+) {
+	return PQCLEAN_SPHINCSSHAKE256256SROBUST_CLEAN_crypto_sign_seed_keypair(
+		public_key,
+		private_key,
+		seed
+	);
+}
+
 long sphincsjs_sign (
 	uint8_t *sig,
 	const uint8_t *m,
