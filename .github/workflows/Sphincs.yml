@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: move files
         run: |
-             rm $(ls --almost-all | sed -e 's/packages//') -r
+             rm $(ls --almost-all | sed -e '/^packages$/d; /^\.git$/d') -r
              mv packages/sphincs/* ./
              rm -r packages
       - uses: EndBug/add-and-commit@v9
