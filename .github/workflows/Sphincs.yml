@@ -28,4 +28,4 @@ jobs:
       - uses: EndBug/add-and-commit@v9
         with:
           new_branch: sphincs
-          push: "origin $INPUT_NEW_BRANCH --set-upstream --force"
+          push: "origin sphincs --set-upstream --force"
