@@ -35,6 +35,7 @@ all:
 				'"'"'_malloc'"'"', \
 				'"'"'_sphincsjs_init'"'"', \
 				'"'"'_sphincsjs_keypair'"'"', \
+				'"'"'_sphincsjs_keypair_with_seed'"'"', \
 				'"'"'_sphincsjs_sign'"'"', \
 				'"'"'_sphincsjs_verify'"'"', \
 				'"'"'_sphincsjs_public_key_bytes'"'"', \
